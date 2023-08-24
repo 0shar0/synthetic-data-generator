@@ -1,0 +1,155 @@
+Use Case Description
+
+Generate test data by identifying the range of inputs, outputs, and scenarios necessary for thorough testing of software application. Cover edge cases, data types, and valid and invalid values to ensure robust coverage. Create realistic and diverse datasets, simulating real-world usage. Incorporate a mix of positive and negative test cases.
+
+Tools and Methodologies
+
+JavaScript (ES6+)
+React 18.x
+Faker.js
+
+Acceptance criteria
+
+Produce a code to generate two linked datasets with synthetic data, 100+ entries each.
+Store generated test data in separate files in CSV format.
+The generated test data represents an arbitrary dataset of movies, series, and credits related to them.
+The generated test data should consist of two relations with the next structure and relationships:
+titles.id numeric title identifier
+titles.title textual movie (series) name
+titles.description textual title description
+titles.release_year should have a Common Era year format
+titles.age_certification should be one of these: G, PG, PG-13, R, NC-17, U, U/A, A, S, AL, 6, 9, 12, 12A, 15, 18, 18R, R18, R21, M, MA15+, R16, R18+, X18, T, E, E10+, EC, C, CA, GP, M/PG, TV-Y, TV-Y7, TV-G, TV-PG, TV-14, TV-MA
+titles.runtime should be a common title duration in minutes
+titles.genres should contain a list of strings representing various movie (series) genres
+titles.production_country should represent a country in ISO 3166-1 Alpha-3 code
+titles.seasons should represent the number of seasons for series or be empty for movies
+credits.id numeric credits identifier
+credits.title_id corresponding title id
+credits.real_name full credits member name
+credits.character_name corresponding movie (series) character name
+credits.role should represent corresponding role and be one of these: Director, Producer, Screenwriter, Actor, Actress, Cinematographer, Film Editor, Production Designer, Costume Designer, Music Composer
+The generated test data should cover a wide range of scenarios, including positive, negative, and edge cases, to ensure comprehensive testing of the application's functionality.
+The test data should accurately represent the expected input and output data types, formats, and values, ensuring that it is suitable for validating the application's functionality.
+The test data should be diverse and include different combinations of inputs, ensuring that the application is tested against a variety of scenarios.
+
+ React
+Generate new React application
+Add a button that, on click, will perform synthetic data generation.
+Perform synthetic data generation. Make sure to generate dependencies between generated datasets. Make sure to generate 100+ entries for each dataset.
+Save synthetic data to two separate CSV files using recommended library.
+Copy synthetized files and any synthetic data generation source code files (if any) to your repository. Make sure to add these files to the version control.
+
+
+
+ChatGPT
+Step-by-Step Implementation
+1. Setup React Application
+First, create a new React application using Create React App:
+
+bash
+Copy code
+npx create-react-app synthetic-data-generator
+cd synthetic-data-generator
+2. Install Required Packages
+Install faker.js for generating synthetic data and papaparse for converting the data to CSV format:
+
+bash
+Copy code
+npm install faker papaparse
+3. Create the Data Generator
+In the src directory, create a new file dataGenerator.js. This will contain functions to generate our synthetic datasets.
+
+javascript
+Copy code
+// src/dataGenerator.js
+
+import faker from 'faker';
+
+// Generate a single title
+function generateTitle() {
+    const genres = ["Action", "Drama", "Comedy", "Horror", "Romance", "Documentary"];
+    const certifications = ["G", "PG", ... ,"TV-MA"];
+    const countries = ["USA", "CAN", "GBR", ...]; // add more ISO 3166-1 Alpha-3 codes as needed
+
+    return {
+        id: faker.datatype.uuid(),
+        title: faker.random.words(3),
+        description: faker.lorem.sentences(2),
+        release_year: faker.date.past(50).getFullYear(),
+        age_certification: faker.random.arrayElement(certifications),
+        runtime: faker.datatype.number({ min: 60, max: 180 }),
+        genres: faker.random.arrayElements(genres, faker.datatype.number({ min: 1, max: 3 })),
+        production_country: faker.random.arrayElement(countries),
+        seasons: faker.datatype.boolean() ? faker.datatype.number({ min: 1, max: 8 }) : null,
+    };
+}
+
+// Generate a credit for a given title
+function generateCredit(titleId) {
+    const roles = ["Director", "Producer", ... , "Music Composer"];
+
+    return {
+        id: faker.datatype.uuid(),
+        title_id: titleId,
+        real_name: faker.name.findName(),
+        character_name: faker.name.firstName(),
+        role: faker.random.arrayElement(roles),
+    };
+}
+
+// Generate datasets of titles and credits
+export function generateDatasets() {
+    const titles = Array.from({ length: 100 }, generateTitle);
+    const credits = titles.flatMap(title => Array.from({ length: 5 }, () => generateCredit(title.id)));  // Assuming 5 credits per title
+
+    return { titles, credits };
+}
+4. Implement React Component
+In src/App.js, create a button that, when clicked, will generate the data and save it to two CSV files.
+
+javascript
+Copy code
+// src/App.js
+
+import React from 'react';
+import { generateDatasets } from './dataGenerator';
+import Papa from 'papaparse';
+
+function App() {
+    const handleGenerateData = () => {
+        const { titles, credits } = generateDatasets();
+
+        const blobTitles = new Blob([Papa.unparse(titles)], { type: 'text/csv' });
+        const blobCredits = new Blob([Papa.unparse(credits)], { type: 'text/csv' });
+
+        const linkTitles = document.createElement('a');
+        linkTitles.href = URL.createObjectURL(blobTitles);
+        linkTitles.download = 'titles.csv';
+        linkTitles.click();
+
+        const linkCredits = document.createElement('a');
+        linkCredits.href = URL.createObjectURL(blobCredits);
+        linkCredits.download = 'credits.csv';
+        linkCredits.click();
+    }
+
+    return (
+        <div className="App">
+            <button onClick={handleGenerateData}>Generate Data</button>
+        </div>
+    );
+}
+
+export default App;
+5. Add to Repository
+To save everything, create a repository, commit the files, and push.
+
+bash
+Copy code
+git init
+git add .
+git commit -m "Initial commit with data generation."
+git remote add origin YOUR_REPOSITORY_URL
+git push -u origin master
+That's it! You can now run the React application, click the button, and download the generated CSV files for testing.
+
